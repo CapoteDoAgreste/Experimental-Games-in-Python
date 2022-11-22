@@ -70,14 +70,6 @@ class MyGame(arcade.Window):
         # This command has to happen before we start drawing
         self.clear()
 
-        start_x = 10
-        start_y = 500
-        arcade.draw_text("Score:" + str(Game.score),
-                         start_x,
-                         start_y,
-                         arcade.color.WARM_BLACK,
-                         20, bold=True)
-
         self.grid = []
 
         #Clear the screen to show the next frame
@@ -115,7 +107,15 @@ class MyGame(arcade.Window):
 
                 # Draw the box
                 arcade.draw_rectangle_filled(x, y, WIDTH, HEIGHT, color)
+        
 
+        start_x = 10
+        start_y = 675
+        arcade.draw_text("Score:" + str(Game.score),
+                         start_x,
+                         start_y,
+                         arcade.color.WARM_BLACK,
+                         20, bold=True)
 
     def on_update(self, delta_time):
         '''
