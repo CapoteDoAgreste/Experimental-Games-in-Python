@@ -3,8 +3,8 @@ import random
 import arcade
 
 # Set how many rows and columns we will have
-ROW_COUNT = 15
-COLUMN_COUNT = 15
+ROW_COUNT = 20
+COLUMN_COUNT = 20
 
 # This sets the WIDTH and HEIGHT of each grid location
 WIDTH = 30
@@ -27,7 +27,6 @@ class Player:
     dir = 1
     body = [[6,1],[5,1],[4,1],[3,1]]
     locBody = [] 
-    initLocation = [[6,1],[5,1],[4,1],[3,1]]
 
 class Apple:
     x = 1
@@ -133,21 +132,33 @@ class MyGame(arcade.Window):
         match(Player.dir):
             case 0:
                 if(Player.body[0][0]-1 >= 0):
+                    for i in range(len(Player.body)-1,0,-1):
+                        if(Player.body[i][0] == Player.body[0][0]-1 and Player.body[i][1] == Player.body[0][1]):
+                            Game.game_over = True
                     Player.body[0][0]-=1
                 else:
                     Game.game_over = True
             case 1:
                 if(Player.body[0][0]+1 < ROW_COUNT):
+                    for i in range(len(Player.body)-1,0,-1):
+                        if(Player.body[i][0] == Player.body[0][0]+1 and Player.body[i][1] == Player.body[0][1]):
+                            Game.game_over = True
                     Player.body[0][0]+=1
                 else:
                     Game.game_over = True
             case 2:
                 if(Player.body[0][1]-1 >= 0):
+                    for i in range(len(Player.body)-1,0,-1):
+                        if(Player.body[i][0] == Player.body[0][0] and Player.body[i][1] == Player.body[0][1]-1):
+                            Game.game_over = True
                     Player.body[0][1]-=1
                 else:
                     Game.game_over = True
             case 3:
                 if(Player.body[0][1]+1 < COLUMN_COUNT):
+                    for i in range(len(Player.body)-1,0,-1):
+                        if(Player.body[i][0] == Player.body[0][0] and Player.body[i][1] == Player.body[0][1]+1):
+                            Game.game_over = True
                     Player.body[0][1]+=1
                 else:
                     Game.game_over = True
@@ -186,7 +197,7 @@ class MyGame(arcade.Window):
 
         if(Game.game_over == True):
             Game.game_over = False
-            Player.body = list(Player.initLocation)
+            Player.body = [[6,1],[5,1],[4,1],[3,1]]
             Player.dir = 1
             Game.score = 0
             Apple.onMap = False
