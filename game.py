@@ -118,6 +118,9 @@ class MyGame(arcade.Window):
                          20, bold=True)
 
     def on_update(self, delta_time):
+        
+        s(0.05)
+        
         '''
         dir 
         0 = left
