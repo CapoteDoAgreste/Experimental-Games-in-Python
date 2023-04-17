@@ -202,7 +202,7 @@ while True:
     if frameIndex > 7:
         frameIndex = 0
     image = pygame.image.load(
-        "game/images/"+playerImages[int(frameIndex)]+'.png')
+        "images/"+playerImages[int(frameIndex)]+'.png')
 
     angle = lerp(angle, target_angle, 0.008)
     rotated_image = pygame.transform.rotate(image, angle)
