@@ -17,7 +17,7 @@ MARGIN = 5
 # Do the math to figure out our screen dimensions
 SCREEN_WIDTH = (WIDTH + MARGIN) * COLUMN_COUNT + MARGIN
 SCREEN_HEIGHT = (HEIGHT + MARGIN) * ROW_COUNT + MARGIN
-SCREEN_TITLE = "Array Backed Grid Example"
+SCREEN_TITLE = "Snake In Python"
 
 class Game:
     score = 0
