@@ -1,1 +1,0 @@
-/home/brisanet/Documentos/capote/react/game/gridwalk.py
