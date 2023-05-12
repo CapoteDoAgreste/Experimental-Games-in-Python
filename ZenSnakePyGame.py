@@ -185,6 +185,9 @@ while True:
         pygame.draw.rect(screen, red, (apple['x'], apple['y'], 32, 32))
         pygame.draw.rect(screen, white, (part['x'], part['y'], 32, 32))
 
+    for part in range(score):
+        print(snakeBody[part])
+
     screen.blit(text_surface, text_pos)
     # Update the window
     pygame.display.flip()
