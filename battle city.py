@@ -7,124 +7,6 @@ with open('battle_city_map.json') as f:
     map_layout = json.load(f)
 
 
-def lerp(a, b, t):
-    return (1 - t) * a + t * b
-
-
-def round_8(num):
-    return round(num / 8) * 8
-
-
-def round_4(num):
-    return round(num / 4) * 4
-
-
-def get_matrix_subset(matrix, px, py):
-    """ Retorna uma submatriz da matriz 'matrix' que está contida no retângulo
-        definido pelos pontos 'px' (superior esquerdo) e 'py' (inferior direito).
-
-        Args:
-            matrix (list): uma matriz representada como uma lista de listas.
-            px (tuple): as coordenadas do ponto superior esquerdo (linha, coluna).
-            py (tuple): as coordenadas do ponto inferior direito (linha, coluna).
-
-        Returns:
-            list: uma submatriz representada como uma lista de listas.
-    """
-    start_row, start_col = px
-    end_row, end_col = py
-
-    # Garante que start_row <= end_row e start_col <= end_col
-    if start_row > end_row:
-        start_row, end_row = end_row, start_row
-    if start_col > end_col:
-        start_col, end_col = end_col, start_col
-
-    # Extrai a submatriz definida pelo retângulo
-    return [row[start_col:end_col+1] for row in matrix[start_row:end_row+1]]
-
-
-def newCollision(p1x, p1y, p2x, p2y):
-    p1x = round_4(p1x)
-    p1y = round_4(p1y)
-    p2x = round_4(p2x)
-    p2y = round_4(p2y)
-
-    p1 = (p1y, p1x)
-    p2 = (p2y, p2x)
-
-    map_hovered = get_matrix_subset(map_layout, p1, p2)
-    print(map_hovered)
-
-
-def colision(axis, direction, positionX, positionY):
-    if (axis == 'x'):
-        positionX = round_8(positionX)
-        positionY = round_8(positionY)
-        xC = int((positionX+(playerSpd*direction)) / 8)
-        yC = int((positionY) / 8)
-    else:
-        xC = int((positionX) / 8)
-        yC = int((positionY+(playerSpd*direction)) / 8)
-    try:
-        map_layout[yC][xC]
-        if map_layout[yC][xC] == 1:
-            return True
-        else:
-            return False
-    except:
-        return False
-
-
-def destroyBrick(axis, direction, positionX, positionY, shoot):
-    if (axis == 'x'):
-        positionX = round_8(positionX)
-        positionY = round_8(positionY)
-        xC = int((positionX+(playerSpd*direction)) / 8)
-        yC = int((positionY) / 8)
-    else:
-        xC = int((positionX) / 8)
-        yC = int((positionY+(playerSpd*direction)) / 8)
-    try:
-        if map_layout[yC][xC] == 1:
-            if axis == 'x':
-                map_layout[yC][xC] = 0
-                map_layout[yC-1][xC] = 0
-                map_layout[yC+1][xC] = 0
-                map_layout[yC-2][xC] = 0
-                index_ = shoots.index(shoot)
-                shoots.remove(shoot)
-            else:
-                map_layout[yC][xC] = 0
-                map_layout[yC][xC-1] = 0
-                map_layout[yC][xC+1] = 0
-                map_layout[yC][xC+2] = 0
-                index_ = shoots.index(shoot)
-                shoots.remove(shoot)
-    except:
-        None
-
-
-def shooting(x, y, dir, objs, owner, col):
-    if dir == 'left' or dir == 'up':
-        axis = -1
-    else:
-        axis = 1
-
-    if dir == 'left' or dir == 'right':
-        y += rect_size/2
-    else:
-        x += rect_size/2
-    objs.append({
-        'x': x,
-        'y': y,
-        'direction': dir,
-        'axis': axis,
-        'owner': owner,
-        'colision': col
-    })
-
-
 # Initialize Pygame
 pygame.init()
 
@@ -140,8 +22,6 @@ pygame.display.set_caption("Battle city clone")
 # Set up the game clock
 clock = pygame.time.Clock()
 
-font = pygame.font.SysFont("comicsansms", 24)
-
 
 # Define the colors
 black = (0, 0, 0)
@@ -152,22 +32,65 @@ red = (150, 75, 0)
 rect_x = 1
 rect_y = 1
 playerSpd = 1
-alive = True
-direction = 'none'
+direction = 'x'
 walking = False
-newPosition = 0
-distance = 0
-xC = 0
-yC = 0
 rect_size = 28
 aimDir = 'left'
 delay = 100
+
+walls = []
 
 shoots = [
 ]
 shootSpd = 2
 
-# Set the movement speed of the rectangle
+
+class Player():
+    def __init__(self, x, y, spd, size, color):
+        self.x = x
+        self.y = y
+        self.size = size
+        self.spd = spd
+        self.color = color
+
+    def draw(self):
+        rect = pygame.draw.rect(
+            screen, self.color, (self.x, self.y, self.size, self.size))
+        return rect
+
+    def move(self, direction, axis):
+        isPossible = self.can_move(direction, self.spd, axis)
+        if (isPossible == True):
+            if (direction == 'x'):
+                self.x += self.spd*axis
+            else:
+                self.y += self.spd*axis
+
+    def can_move(self, direction, axis):
+        if (direction == 'x'):
+            playerCollision = pygame.Rect(
+                self.x+self.spd*axis, self.y, self.size, self.size)
+        else:
+            playerCollision = pygame.Rect(
+                self.x, self.y+self.spd*axis, self.size, self.size)
+
+        for wall in walls:
+            if (playerCollision.colliderect(wall)):
+                return False
+        return True
+
+
+class Wall():
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((8, 8))
+        self.image.fill(red)
+        self.rect = self.image.get_rect()
+        self.rect.x = x * 8
+        self.rect.y = y * 8
+
+
+player = Player(0, 0, 32, playerSpd, white)
 
 # Run the game loop
 while True:
@@ -182,61 +105,45 @@ while True:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         aimDir = 'left'
-        if (rect_x - playerSpd > 0 and colision('x', -1, rect_x, rect_y) == False):
-            rect_x -= playerSpd
+        player.move('x', -1)
+
     if keys[pygame.K_RIGHT]:
         aimDir = 'right'
-        if (rect_x + playerSpd < 416-rect_size and colision('x', 1, rect_x+rect_size, rect_y) == False):
-            rect_x += playerSpd
+        player.move('x', 1)
+
     if keys[pygame.K_UP]:
         aimDir = 'up'
-        if (rect_y - playerSpd > 0 and colision('y', -1, rect_x, rect_y) == False and colision('y', -1, rect_x, rect_y) == False):
-            rect_y -= playerSpd
+        player.move('y', -1)
+
     if keys[pygame.K_DOWN]:
         aimDir = 'down'
-        if (rect_y + playerSpd < 416-rect_size and colision('y', 1, rect_x, rect_y+rect_size) == False and colision('y', 1, rect_x+rect_size, rect_y+rect_size) == False):
-            rect_y += playerSpd
-
-        if colision('y', 1, rect_x, rect_y+rect_size) == False:
-            newCollision(rect_x, rect_y, rect_x+rect_size, rect_y+rect_size)
+        player.move('y', 1)
 
     if keys[pygame.K_z] and delay > 25:
         if aimDir == 'left' or aimDir == 'right':
             sC = 'x'
         else:
             sC = 'y'
-        shooting(rect_x, rect_y, aimDir, shoots, 'player', sC)
         delay = 0
     if keys[pygame.K_r]:
         print('test')
 
     # Draw the game
-
     screen.fill(black)
+    player_rect = player.draw()
+
+    wall_surface = pygame.Surface(window_size)
+
+    wall_group = pygame.sprite.Group()
 
     for y in range(len(map_layout)):
         for x in range(len(map_layout[y])):
             if map_layout[y][x] == 1:
-                pygame.draw.rect(screen, red, (
-                    x*8, y*8, 8, 8))
-
-    for shoot in shoots:
-        pygame.draw.rect(screen, white, (
-            shoot['x'], shoot['y'], 8, 8))
-        if shoot['direction'] == 'left' or shoot['direction'] == 'right':
-            shoot['x'] += shootSpd*shoot['axis']
-        else:
-            shoot['y'] += shootSpd*shoot['axis']
-
-        destroyBrick(shoot['colision'], shoot['axis'],
-                     shoot['x'], shoot['y'], shoot)
-
-        if shoot['x'] < -8 or shoot['x'] > 424:
-            shoots.remove(shoot)
-        if shoot['y'] < -8 or shoot['y'] > 424:
-            shoots.remove(shoot)
-
-    pygame.draw.rect(screen, white, (rect_x, rect_y, rect_size, rect_size))
+                wall = Wall(x, y)
+                wall_group.add(wall)
+                walls.append(pygame.Rect(x*8, y*8, 8, 8))
+    wall_group.update()
+    wall_group.draw(screen)
     # Update the window
     pygame.display.flip()
 

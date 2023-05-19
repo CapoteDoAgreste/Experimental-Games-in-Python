@@ -1,6 +1,11 @@
 import pygame
 import math
 
+
+def lerp(a, b, t):
+    return (1 - t) * a + t * b
+
+
 # Initialize Pygame
 pygame.init()
 
@@ -76,11 +81,18 @@ steering_angle = 0
 steering_speed = 0.1
 gear = 1
 
+
+steering_angle = lerp(steering_angle, 0, 0.1)
+car.angle = lerp(car.angle, 0, 0.1)
+print(steering_angle)
+
 # Game loop
 running = True
 clock = pygame.time.Clock()
 while running:
     clock.tick(60)  # Limit the frame rate to 60 FPS
+    steering_angle = lerp(steering_angle, 0, 0.02)
+    print(steering_angle)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
