@@ -43,7 +43,8 @@ class Car:
         # print(car.speed)
 
     def draw(self):
-        rotated_car = pygame.transform.rotate(self.car_image, self.angle * -1)
+        rotated_car = pygame.transform.rotate(
+            self.car_image, self.angle * -1)
         new_rect = rotated_car.get_rect(
             center=self.car_image.get_rect(topleft=(self.x, self.y)).center)
         window.blit(rotated_car, new_rect.topleft)
@@ -53,7 +54,6 @@ class Car:
     def steering(self, modifier):
         if (abs(modifier) >= 0.2):
             car.angle += modifier
-            steering_angle
         # print(modifier)
 
     def accelerate(self, direction, car_gear):
@@ -75,25 +75,63 @@ class Car:
                     car.speed += 0.2*direction
 
 
+class Steering:
+    def __init__(self, x, y, angle):
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.image = pygame.Surface((60, 60), pygame.SRCALPHA)
+        pygame.draw.rect(self.image, red, (0, 0, 60, 60))
+
+    def update(self):
+        self.angle = steering_angle*270
+
+    def draw(self):
+        rotated_image = pygame.transform.rotate(
+            self.image, self.angle * -1)
+        steering_rect = rotated_image.get_rect(
+            center=self.image.get_rect(topleft=(self.x, self.y)).center)
+        window.blit(rotated_image, steering_rect.topleft)
+        return steering_rect
+
+
+steering_angle = 0
+steering_speed = 0.05
+gear = 1
 # Create a car object
 car = Car(width // 2, height // 2)
-steering_angle = 0
-steering_speed = 0.1
-gear = 1
+steering = Steering(width-70, height-70, 0)
 
-
-steering_angle = lerp(steering_angle, 0, 0.1)
-car.angle = lerp(car.angle, 0, 0.1)
-print(steering_angle)
+if (abs(steering_angle) >= 0):
+    if (steering_angle > 0):
+        steering_angle -= steering_speed/6
+        # car.angle -= steering_speed/6
+        if (steering_angle < 0):
+            steering_angle = 0
+            car.angle = 0
+    else:
+        steering_angle += steering_speed/6
+        # car.angle += steering_speed/6
+        if (steering_angle > 0):
+            steering_angle = 0
+            car.angle = 0
 
 # Game loop
 running = True
 clock = pygame.time.Clock()
 while running:
     clock.tick(60)  # Limit the frame rate to 60 FPS
-    steering_angle = lerp(steering_angle, 0, 0.02)
     print(steering_angle)
-
+    if (abs(steering_angle) >= 0):
+        if (steering_angle > 0):
+            steering_angle -= steering_speed/6
+            if (steering_angle < 0):
+                steering_angle = 0
+        else:
+            steering_angle += steering_speed/6
+            # car.angle += steering_speed/6
+            if (steering_angle > 0):
+                steering_angle = 0
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -104,11 +142,11 @@ while running:
     if keys[pygame.K_DOWN]:
         car.accelerate(-1, gear)
     if keys[pygame.K_LEFT]:
-        if (steering_angle-1 >= -2 and car.speed != 0):
-            steering_angle -= (steering_speed*car.speed)/7.5
+        if (steering_angle >= -2):
+            steering_angle -= (steering_speed)/3
     if keys[pygame.K_RIGHT]:
-        if (steering_angle-1 <= 2 and car.speed != 0):
-            steering_angle += (steering_speed*car.speed)/7.5
+        if (steering_angle <= 2):
+            steering_angle += (steering_speed)/3
 
     if keys[pygame.K_1]:
         gear = 1
@@ -122,6 +160,8 @@ while running:
         gear = 5
     if keys[pygame.K_6]:
         gear = 6
+    if keys[pygame.K_7]:
+        gear = -2
 
     # creating acc
     if (car.speed > 0):
@@ -133,10 +173,8 @@ while running:
         if (car.speed > 0):
             car.speed = 0
 
-    if (car.speed == 0):
-        steering_angle = 0
-
-    car.steering(steering_angle)
+    if (abs(car.speed) != 0):
+        car.steering(steering_angle)
 
     # Update the car's position and speed
     car.update()
@@ -145,13 +183,46 @@ while running:
     window.fill(black)
 
     car_rect = car.draw()  # Get the car's bounding rectangle
-
+    steering.update()
+    steering.draw()
     # Check for collision between car and rectangle
-    rectangle = pygame.Rect(40, 40, 100, 100)
+    obstacles = [
+        {
+            "x": 40,
+            "y": 40,
+            "sizeX": 20,
+            "sizeY": 60
+        },
+        {
+            "x": 85,
+            "y": 40,
+            "sizeX": 20,
+            "sizeY": 60
+        },
+        {
+            "x": 40,
+            "y": 300,
+            "sizeX": 40,
+            "sizeY": 20
+        },
+        {
+            "x": 160,
+            "y": 300,
+            "sizeX": 40,
+            "sizeY": 20
+        }
+    ]
 
-    pygame.draw.rect(window, red, (40, 40, 100, 100))
-    if car_rect.colliderect(rectangle):
-        print("Car collided with rectangle!")
+    for obstacle in obstacles:
+        newObstacle = pygame.Rect(
+            obstacle["x"], obstacle["y"], obstacle["sizeX"], obstacle["sizeY"])
+        pygame.draw.rect(
+            window, red, (obstacle["x"], obstacle["y"], obstacle["sizeX"], obstacle["sizeY"]))
+        if car_rect.colliderect(newObstacle):
+            car.x = width/2
+            car.y = height/2
+            car.angle = 0
+            car.speed = 0
     else:
         print("not coliding")
 
